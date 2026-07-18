@@ -1,0 +1,4 @@
+important events/dates, able to be linked to periods. 
+
+propose to create an event, a verifier role can approve it to be added to the roster. etc
+

@@ -1,0 +1,77 @@
+import discord
+from discord import app_commands
+from discord.ext import commands
+from dotenv import load_dotenv
+import os
+import sys
+import time
+import asyncio
+import logging
+from datetime import datetime
+import course_select
+import db_manager
+import schedule_view
+
+load_dotenv()
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+start_time = datetime.now()
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s; %(filename)s; %(funcName)s(); %(levelname)s: %(message)s"    
+)
+logger = logging.getLogger(__name__)
+
+class Bot(commands.Bot):
+    def __init__(self, *args, **kwargs):
+        logger.debug("Bot initializing")
+        super().__init__(*args, **kwargs)
+
+    async def setup_hook(self):
+        logger.debug(f"Running setup hook, syncing command tree")
+        # await self.tree.sync(guild=discord.Object(id=1522438525826502786)) # REMOVE THIS GUILD ONLY SYNC AFTER DEVELOPMENT
+    
+    async def on_ready(self):
+        logger.info(f"Logged in as '{self.user}'")
+
+intents = discord.Intents.default()
+intents.message_content = True
+client = Bot(intents=intents, command_prefix=[]) # NEVER USE @bot.command, THE COMMAND PREFIX SHOULD REMAIN UNUSED UNLESS FOR TESTING
+
+@client.tree.command(description="Register your schedule with the database")
+async def setschedule(interaction: discord.Interaction):
+    logger.debug(f"/setschedule ran by '{interaction.user}'")
+    await interaction.response.send_message(view=course_select.CourseSelectView(interaction), ephemeral=True)
+
+@client.tree.command(description="Fetch a user's schedule")
+async def fetchschedule(interaction: discord.Interaction, user: discord.User | None = None): # = None and the two types allow for the field to be left blank
+    logger.debug(f"/fetchschedule ran by '{interaction.user}' targeting '{user}'")
+    target_user_id = user.id if user else interaction.user.id
+    await interaction.response.send_message(
+        ephemeral=False,
+        allowed_mentions=discord.AllowedMentions.none(),
+        view=schedule_view.ScheduleView(
+            db_manager.fetch_user_schedule(user_id=target_user_id),
+            message=f"# <@{target_user_id}>'s Schedule"
+        )
+    )
+
+@client.tree.command(description="Causes bot to exit; parent should restart the bot process")
+async def restart(interaction: discord.Interaction):
+    if interaction.user.guild_permissions.administrator:
+        logger.info(f"Bot restart requested by '{interaction.user}' via /restart")
+        await interaction.response.send_message("Safely closing database connection...")
+        logger.info("Attempting to cleanup database connection")
+        await asyncio.to_thread(db_manager.cleanup)
+        await interaction.followup.send("Exiting!")
+        logger.info("Closing client")
+        await client.close()
+    else:
+        logger.info(f"User '{interaction.user}' lacks permission to restart bot")
+        await interaction.response.send_message("This command may only be run by administrators.")
+
+@client.tree.command(description="Check bot status")
+async def status(interaction: discord.Interaction):
+    logger.debug(f"/status ran by '{interaction.user}'")
+    await interaction.response.send_message(f"uptime: {datetime.now() - start_time}") # improve this shit later
+
+client.run(BOT_TOKEN)
