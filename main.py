@@ -11,6 +11,8 @@ from datetime import datetime
 import course_select
 import db_manager
 import schedule_view
+import config
+import modal1test
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -27,11 +29,24 @@ class Bot(commands.Bot):
         super().__init__(*args, **kwargs)
 
     async def setup_hook(self):
-        logger.debug(f"Running setup hook, syncing command tree")
-        # await self.tree.sync(guild=discord.Object(id=1522438525826502786)) # REMOVE THIS GUILD ONLY SYNC AFTER DEVELOPMENT
-    
+        logger.debug("Running setup hook")
+        if config.SYNC_COMMANDS_ON_STARTUP:
+            logger.debug("Creating task to sync slash commands")
+            asyncio.create_task(self.sync_commands())
+        else:
+            logger.debug("Sync commands on startup is disabled; will not sync slash commands.")
+
     async def on_ready(self):
         logger.info(f"Logged in as '{self.user}'")
+
+    async def sync_commands(self):
+        try:
+            commands = await self.tree.sync()
+            logger.info(f"Finished syncing slash commands; Synced {len(commands)} command(s)")
+            return commands
+        except Exception:
+            logger.exception(f"Slash commands failed to sync;")
+            return None
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -54,6 +69,22 @@ async def fetchschedule(interaction: discord.Interaction, user: discord.User | N
             message=f"# <@{target_user_id}>'s Schedule"
         )
     )
+
+@client.tree.command(description="Create and submit an event proposal")
+async def submitevent(interaction: discord.Interaction):
+    await interaction.response.send_modal(modal1test.ModalTest())
+
+@client.tree.command(description="Syncs commands from bot; development use only")
+async def sync(interaction: discord.Interaction):
+    if interaction.user.guild_permissions.administrator:
+        await interaction.response.defer(thinking=True)
+        sync_result = await client.sync_commands()
+        if sync_result == None:
+            await interaction.followup.send("Syncing commands failed!")
+        else:
+            await interaction.followup.send(f"Finished syncing slash commands; Synced {len(sync_result)} command(s)")
+    else:
+        await interaction.response.send_message("This command may only be run by administrators.")
 
 @client.tree.command(description="Causes bot to exit; parent should restart the bot process")
 async def restart(interaction: discord.Interaction):
