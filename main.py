@@ -52,6 +52,14 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = Bot(intents=intents, command_prefix=[]) # NEVER USE @bot.command, THE COMMAND PREFIX SHOULD REMAIN UNUSED UNLESS FOR TESTING
 
+@client.tree.interaction_check
+async def guild_only_check(interaction: discord.Interaction):
+    if interaction.guild is None:
+        await interaction.response.send_message("Commands may only be used in a guild.")
+        return False
+    else:
+        return True
+
 @client.tree.command(description="Register your schedule with the database")
 async def setschedule(interaction: discord.Interaction):
     logger.debug(f"/setschedule ran by '{interaction.user}'")
