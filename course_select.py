@@ -24,7 +24,7 @@ class CourseSelectView(discord.ui.LayoutView):
         super().__init__(timeout=180)
         container = discord.ui.Container(accent_color=discord.Color.blurple())
         container.add_item(
-            discord.ui.TextDisplay(content="## Select the courses you have\n-# Leave a slot blank to keep existing selection")
+            discord.ui.TextDisplay(content="## Select your courses\n-# Leave a slot blank to keep existing selection")
         )
 
         for period in range(1,7):
