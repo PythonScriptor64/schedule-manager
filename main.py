@@ -52,13 +52,13 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = Bot(intents=intents, command_prefix=[]) # NEVER USE @bot.command, THE COMMAND PREFIX SHOULD REMAIN UNUSED UNLESS FOR TESTING
 
-@client.tree.interaction_check
 async def guild_only_check(interaction: discord.Interaction):
     if interaction.guild is None:
-        await interaction.response.send_message("Commands may only be used in a guild.")
+        await interaction.response.send_message("Commands may only be used in a guild.", ephemeral=True)
         return False
     else:
         return True
+client.tree.interaction_check = guild_only_check
 
 @client.tree.command(description="Register your schedule with the database")
 async def setschedule(interaction: discord.Interaction):
@@ -79,7 +79,7 @@ async def fetchschedule(interaction: discord.Interaction, user: discord.User | N
     )
 
 @client.tree.command(description="Create and submit an event proposal")
-async def submitevent(interaction: discord.Interaction):
+async def registerevent(interaction: discord.Interaction):
     await interaction.response.send_modal(modal1test.ModalTest())
 
 @client.tree.command(description="Syncs commands from bot; development use only")
@@ -112,5 +112,9 @@ async def restart(interaction: discord.Interaction):
 async def status(interaction: discord.Interaction):
     logger.debug(f"/status ran by '{interaction.user}'")
     await interaction.response.send_message(f"uptime: {datetime.now() - start_time}") # improve this shit later
+
+@client.tree.command(description="test if schedule select looks better as a modal")
+async def schedulemodal(interaction: discord.Interaction): # DELETE THIS SHIT LATER
+    await interaction.response.send_modal(__import__("schedulemodaltest1").CourseSelectModal())
 
 client.run(BOT_TOKEN)
