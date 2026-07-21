@@ -3,7 +3,7 @@ import logging
 import json
 
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 try:
     with open("courses.json","r") as courses_json_f:
