@@ -79,7 +79,7 @@ class SaveButton(discord.ui.Button):
                 )
             )
         else:
-            logger.warn("Failed to save schedule to DB")
+            logger.warning("Failed to save schedule to DB")
             await interaction.response.send_message(
                 message="## Failed to save schedule, try again.",
                 ephemeral=True
