@@ -1,6 +1,6 @@
 important events/dates, able to be linked to periods. 
 
-propose to create an event, a verifier role can approve it to be added to the roster. etc
+propose to create an event, a verifier role can approve it to be added to the roster. etc, allow attaching a class and period to an event
 
 
 dynamic rules, interactive rule setting n stuff
@@ -8,4 +8,9 @@ dynamic rules, interactive rule setting n stuff
 schedule matching
 
 
-rules stuff
+discord server rules stuff
+
+
+
+
+! rewrite courses.json system to allow for the same course to have multiple teachers. multiple teachers teach the same course
