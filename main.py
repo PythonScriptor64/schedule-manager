@@ -52,6 +52,9 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = Bot(intents=intents, command_prefix=[]) # NEVER USE @bot.command, THE COMMAND PREFIX SHOULD REMAIN UNUSED UNLESS FOR TESTING
 
+async def disable_interactions(interaction: discord.Interaction):
+    return False
+
 async def guild_only_check(interaction: discord.Interaction):
     if interaction.guild is None:
         await interaction.response.send_message("Commands may only be used in a guild.", ephemeral=True)
@@ -98,7 +101,9 @@ async def sync(interaction: discord.Interaction):
 async def restart(interaction: discord.Interaction):
     if interaction.user.guild_permissions.administrator:
         logger.info(f"Bot restart requested by '{interaction.user}' via /restart")
-        await interaction.response.send_message("Safely closing database connection...")
+        logger.info("Disabling slash commands")
+        client.tree.interaction_check = disable_interactions
+        await interaction.response.send_message("Requesting to close database engine...")
         logger.info("Attempting to cleanup database connection")
         await asyncio.to_thread(db_manager.cleanup)
         await interaction.followup.send("Exiting!")
