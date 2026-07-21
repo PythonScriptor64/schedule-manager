@@ -5,7 +5,7 @@ import uuid
 import time
 import os
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 _engine = sqlmodel.create_engine("sqlite:///main.db")
 
 def int_time(): return int(time.time())
