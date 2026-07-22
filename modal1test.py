@@ -34,3 +34,10 @@ class ModalTest(discord.ui.Modal):
 
         self.add_item(discord.ui.Label(text="yo this is label", component=discord.ui.Select(options=options)))
 
+        # self.add_item(discord.ui.Label(text="this is the label text", component=discord.TextInput()))
+
+        self.add_item(discord.ui.TextInput(label="short",style=discord.TextStyle.short, placeholder="short placeholder"))
+
+        self.add_item(discord.ui.TextInput(label="long",style=discord.TextStyle.long, placeholder="long placeholder"))
+
+        self.add_item(discord.ui.TextInput(label="paragraph",style=discord.TextStyle.paragraph, placeholder="paragraph placeholder"))
