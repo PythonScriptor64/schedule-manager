@@ -12,6 +12,7 @@ import course_select
 import db_manager
 import schedule_view
 import config
+import event_modal
 import modal1test
 
 load_dotenv()
@@ -83,7 +84,7 @@ async def fetchschedule(interaction: discord.Interaction, user: discord.User | N
 
 @client.tree.command(description="Create and submit an event proposal")
 async def registerevent(interaction: discord.Interaction):
-    await interaction.response.send_modal(modal1test.ModalTest())
+    await interaction.response.send_modal(event_modal.CreateEventModal())
 
 @client.tree.command(description="Syncs commands from bot; development use only")
 async def sync(interaction: discord.Interaction):
@@ -118,8 +119,8 @@ async def status(interaction: discord.Interaction):
     logger.debug(f"/status ran by '{interaction.user}'")
     await interaction.response.send_message(f"uptime: {datetime.now() - start_time}") # improve this shit later
 
-@client.tree.command(description="test if schedule select looks better as a modal")
-async def schedulemodal(interaction: discord.Interaction): # DELETE THIS SHIT LATER
-    await interaction.response.send_modal(__import__("schedulemodaltest1").CourseSelectModal())
+@client.tree.command(description="experimenting with modals; DELETE THIS AFTER DEVELOPMENT")
+async def modaltest(interaction: discord.Interaction): # DELETE THIS SHIT LATER
+    await interaction.response.send_modal(modal1test.ModalTest())
 
 client.run(BOT_TOKEN)
