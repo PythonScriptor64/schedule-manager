@@ -74,7 +74,7 @@ class SaveButton(discord.ui.Button):
             await interaction.response.send_message(
                 ephemeral=True,
                 view=schedule_view.ScheduleView(
-                    schedule=self.parent_view.selected_classes,
+                    schedule=db_manager.fetch_user_schedule(self.parent_view.command_interaction.user.id),
                     message="# Saved schedule successfully!"
                 )
             )
