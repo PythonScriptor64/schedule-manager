@@ -20,7 +20,7 @@ class User(sqlmodel.SQLModel, table=True):
     period5: str | None = None
     period6: str | None = None
 
-class EventDate(sqlmodel.SQLModel, table=True):
+class Event(sqlmodel.SQLModel, table=True):
     event_uuid: str = sqlmodel.Field(primary_key=True, default_factory=str_uuid4)
     span: bool = False
     start_time: int # required
@@ -41,7 +41,7 @@ class Rule(sqlmodel.SQLModel, table=True):
     created_by: int | None = None
     created_at: int = sqlmodel.Field(default_factory=int_time)
 
-class GenericValues(sqlmodel.SQLModel, table=True):
+class GenericValue(sqlmodel.SQLModel, table=True):
     key: str = sqlmodel.Field(primary_key=True) # required
     value: str | None = None
 
