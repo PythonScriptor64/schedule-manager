@@ -10,4 +10,4 @@ class CreateEventModal(discord.ui.Modal):
         self.add_item(discord.ui.TextDisplay(content="test"))
 
         self.add_item(discord.ui.TextInput(label="short",style=discord.TextStyle.short, placeholder="short placeholder"))
-        self.add_item(discord.ui.TextInput(label="paragraph",style=discord.TextStyle.paragraph, placeholder="paragraph placeholder"))
+        self.add_item(discord.ui.TextInput(label="paragraph",style=discord.TextStyle.paragraph, placeholder="paragraph placeholder", default="lkewfoijev"))
