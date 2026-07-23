@@ -65,9 +65,14 @@ async def on_command_error(
 
 def admin_only_command():
     async def predicate(interaction: discord.Interaction):
+        if interaction.guild is None:
+            logger.info(f"User {interaction.user.name} tried to run /{interaction.command.name} outside of a guild")
+            return False
         if interaction.user.guild_permissions.administrator:
+            logger.info(f"User {interaction.user.name} has permission to run /{interaction.command.name}")
             return True
         else:
+            logger.info(f"User {interaction.user.name} lacks permission to run /{interaction.command.name}")
             await interaction.response.send_message(
                 "This command may only be run by administrators.",
                 ephemeral=True
@@ -78,21 +83,23 @@ def admin_only_command():
 async def disable_interactions(interaction: discord.Interaction):
     return False
 
-async def guild_only_check(interaction: discord.Interaction):
+async def guild_check(interaction: discord.Interaction):
     if interaction.guild is None:
+        logger.info(f"User {interaction.user.name} tried to run /{interaction.command.name} outside of a guild")
         await interaction.response.send_message("Commands may only be used in a guild.", ephemeral=True)
+        return False
+    elif interaction.guild_id != config.ALLOWED_GUILD:
+        logger.info(f"User {interaction.user.name} tried to run /{interaction.command.name} outside of the allowed guild")
         return False
     else:
         return True
-client.tree.interaction_check = guild_only_check
+client.tree.interaction_check = guild_check
 
 @client.tree.command(description="Create a rule; may only be run by administrators")
+@admin_only_command()
 async def createrule(interaction: discord.Interaction):
     logger.debug(f"/createrule ran by '{interaction.user}'")
-    if interaction.user.guild_permissions.administrator:
-        await interaction.response.send_modal(rule_create.RuleCreateModal(interaction))
-    else:
-        await interaction.response.send_message("This command may only be run by administrators.")
+    await interaction.response.send_modal(rule_create.RuleCreateModal(interaction))
 
 @client.tree.command(description="Register your schedule with the database")
 async def setschedule(interaction: discord.Interaction):
@@ -117,32 +124,28 @@ async def registerevent(interaction: discord.Interaction):
     await interaction.response.send_modal(event_modal.CreateEventModal())
 
 @client.tree.command(description="Syncs commands from bot; development use only")
+@admin_only_command()
 async def sync(interaction: discord.Interaction):
-    if interaction.user.guild_permissions.administrator:
-        await interaction.response.defer(thinking=True)
-        sync_result = await client.sync_commands()
-        if sync_result == None:
-            await interaction.followup.send("Syncing commands failed!")
-        else:
-            await interaction.followup.send(f"Finished syncing slash commands; Synced {len(sync_result)} command(s)")
+    await interaction.response.defer(thinking=True)
+    sync_result = await client.sync_commands()
+    if sync_result == None:
+        await interaction.followup.send("Syncing commands failed!")
     else:
-        await interaction.response.send_message("This command may only be run by administrators.")
+        await interaction.followup.send(f"Finished syncing slash commands; Synced {len(sync_result)} command(s)")
+
 
 @client.tree.command(description="Causes bot to exit; parent should restart the bot process")
+@admin_only_command()
 async def restart(interaction: discord.Interaction):
-    if interaction.user.guild_permissions.administrator:
-        logger.info(f"Bot restart requested by '{interaction.user}' via /restart")
-        logger.info("Disabling slash commands")
-        client.tree.interaction_check = disable_interactions
-        await interaction.response.send_message("Requesting to close database engine...")
-        logger.info("Attempting to cleanup database connection")
-        await asyncio.to_thread(db_manager.cleanup)
-        await interaction.followup.send("Exiting!")
-        logger.info("Closing client")
-        await client.close()
-    else:
-        logger.info(f"User '{interaction.user}' lacks permission to restart bot")
-        await interaction.response.send_message("This command may only be run by administrators.")
+    logger.info(f"Bot restart requested by '{interaction.user}' via /restart")
+    logger.info("Disabling slash commands")
+    client.tree.interaction_check = disable_interactions
+    await interaction.response.send_message("Requesting to close database engine...")
+    logger.info("Attempting to cleanup database connection")
+    await asyncio.to_thread(db_manager.cleanup)
+    await interaction.followup.send("Exiting!")
+    logger.info("Closing client")
+    await client.close()
 
 @client.tree.command(description="Check bot status")
 async def status(interaction: discord.Interaction):
