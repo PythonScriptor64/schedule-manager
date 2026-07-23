@@ -13,7 +13,7 @@ import db_manager
 import schedule_view
 import config
 import event_modal
-import modal1test
+import rule_create
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -53,6 +53,28 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = Bot(intents=intents, command_prefix=[]) # NEVER USE @bot.command, THE COMMAND PREFIX SHOULD REMAIN UNUSED UNLESS FOR TESTING
 
+
+@client.tree.error
+async def on_command_error(
+    interaction: discord.Interaction,
+    error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.CheckFailure):
+        logger.info(f"Check failed for command /{interaction.command.name} ran by {interaction.user.name}")
+        return
+    logger.exception("Unhandled app command error", exc_info=error)
+
+def admin_only_command():
+    async def predicate(interaction: discord.Interaction):
+        if interaction.user.guild_permissions.administrator:
+            return True
+        else:
+            await interaction.response.send_message(
+                "This command may only be run by administrators.",
+                ephemeral=True
+            )
+            return False
+    return app_commands.check(predicate)
+
 async def disable_interactions(interaction: discord.Interaction):
     return False
 
@@ -63,6 +85,14 @@ async def guild_only_check(interaction: discord.Interaction):
     else:
         return True
 client.tree.interaction_check = guild_only_check
+
+@client.tree.command(description="Create a rule; may only be run by administrators")
+async def createrule(interaction: discord.Interaction):
+    logger.debug(f"/createrule ran by '{interaction.user}'")
+    if interaction.user.guild_permissions.administrator:
+        await interaction.response.send_modal(rule_create.RuleCreateModal(interaction))
+    else:
+        await interaction.response.send_message("This command may only be run by administrators.")
 
 @client.tree.command(description="Register your schedule with the database")
 async def setschedule(interaction: discord.Interaction):
@@ -119,8 +149,8 @@ async def status(interaction: discord.Interaction):
     logger.debug(f"/status ran by '{interaction.user}'")
     await interaction.response.send_message(f"uptime: {datetime.now() - start_time}") # improve this shit later
 
-@client.tree.command(description="experimenting with modals; DELETE THIS AFTER DEVELOPMENT")
-async def modaltest(interaction: discord.Interaction): # DELETE THIS SHIT LATER
-    await interaction.response.send_modal(modal1test.ModalTest())
+# @client.tree.command(description="experimenting with modals; DELETE THIS AFTER DEVELOPMENT")
+# async def modaltest(interaction: discord.Interaction): # DELETE THIS SHIT LATER
+#     await interaction.response.send_modal(modal1test.ModalTest())
 
 client.run(BOT_TOKEN)
