@@ -50,7 +50,6 @@ class Bot(commands.Bot):
             return None
 
 intents = discord.Intents.default()
-intents.message_content = True
 client = Bot(intents=intents, command_prefix=[]) # NEVER USE @bot.command, THE COMMAND PREFIX SHOULD REMAIN UNUSED UNLESS FOR TESTING
 
 
@@ -90,6 +89,7 @@ async def guild_check(interaction: discord.Interaction):
         return False
     elif interaction.guild_id != config.ALLOWED_GUILD:
         logger.info(f"User {interaction.user.name} tried to run /{interaction.command.name} outside of the allowed guild")
+        await interaction.response.send_message("Commands may not be used outside of allowed guild.", ephemeral=True)
         return False
     else:
         return True
@@ -128,7 +128,7 @@ async def registerevent(interaction: discord.Interaction):
 async def sync(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
     sync_result = await client.sync_commands()
-    if sync_result == None:
+    if sync_result is None:
         await interaction.followup.send("Syncing commands failed!")
     else:
         await interaction.followup.send(f"Finished syncing slash commands; Synced {len(sync_result)} command(s)")
